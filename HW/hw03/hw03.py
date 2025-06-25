@@ -25,6 +25,9 @@ def num_eights(n):
     True
     """
     "*** YOUR CODE HERE ***"
+    if (n == 0):
+        return 0
+    return num_eights(n // 10) + (n % 10 == 8)
 
 
 def digit_distance(n):
@@ -47,6 +50,11 @@ def digit_distance(n):
     True
     """
     "*** YOUR CODE HERE ***"
+    if (n < 10):
+        return 0
+    x = n % 10
+    y = (n // 10) % 10
+    return abs(x - y) + digit_distance(n // 10)
 
 
 def interleaved_sum(n, odd_func, even_func):
@@ -71,6 +79,15 @@ def interleaved_sum(n, odd_func, even_func):
     True
     """
     "*** YOUR CODE HERE ***"
+    def sum_from_odd(k, n, odd_func, even_func):
+        # n is odd
+        if (k > n):
+            return 0
+        elif (k == n):
+            return odd_func(n)
+        return odd_func(k) + even_func(k + 1) + sum_from_odd(k + 2, n, odd_func, even_func)
+    return sum_from_odd(1, n, odd_func, even_func)
+
 
 
 def next_smaller_dollar(bill):
@@ -107,6 +124,15 @@ def count_dollars(total):
     True
     """
     "*** YOUR CODE HERE ***"
+    def count_with_bill(num, max_bill):
+        if (num < 0):
+            return 0
+        elif (num == 0):
+            return 1
+        elif (max_bill == 1):
+            return 1
+        return count_with_bill(num - max_bill, max_bill) + count_with_bill(num, next_smaller_dollar(max_bill))
+    return count_with_bill(total, 100)
 
 
 def next_larger_dollar(bill):
@@ -143,6 +169,18 @@ def count_dollars_upward(total):
     True
     """
     "*** YOUR CODE HERE ***"
+    def count_with_bill(num, max_bill):
+        if (num < 0):
+            return 0
+        elif (num == 0):
+            return 1
+        elif (num < max_bill):
+            return 0
+        if (next_larger_dollar(max_bill)):
+            return count_with_bill(num - max_bill, max_bill) + count_with_bill(num, next_larger_dollar(max_bill))
+        else:
+            return count_with_bill(num - max_bill, max_bill)
+    return count_with_bill(total, 1)
 
 
 def print_move(origin, destination):
@@ -178,7 +216,16 @@ def move_stack(n, start, end):
     """
     assert 1 <= start <= 3 and 1 <= end <= 3 and start != end, "Bad start/end"
     "*** YOUR CODE HERE ***"
-
+    def allStatus(n, s, t, a):
+        if (n == 0):
+            return
+        elif (n == 1):
+            print_move(s, t)
+            return
+        allStatus(n - 1, s, a, t)
+        allStatus(1, s, t, a)
+        allStatus(n - 1, a, t, s)
+    return allStatus(n, start, end, 6 - (start + end))
 
 from operator import sub, mul
 
@@ -193,5 +240,29 @@ def make_anonymous_factorial():
     ...     ['Assign', 'AnnAssign', 'AugAssign', 'NamedExpr', 'FunctionDef', 'Recursion'])
     True
     """
-    return 'YOUR_EXPRESSION_HERE'
+    # To memorize computation process, we employ self-reference
+    # import f, x in lambda expression
 
+    # Infer1 :: (f -> Int -> Int) -> Int -> Int
+    # Infer1 = lambda f: lambda x: 1 if (x == 1) else f(f)(x - 1) * x
+
+    # now Infer1 is the actual def for factor
+    # try to eliminate passing f
+    # the goal is: g f x = f f x <-> g f = f f
+    # g = λf. f f, or g = λf. λx. f f x in python implement: depends on currying support
+
+    # Infer2 :: Int -> Int
+    # Infer2 = (lambda f: f(f))(lambda f: lambda x: 1 if (x == 0) else f(f)(x - 1) * x)
+
+    return(lambda f: f(f))(lambda f: lambda x: 1 if (x == 0) else f(f)(x - 1) * x)
+
+    # assume that Y is the general solution for g f = f (no restriction on self-reference)
+    # f = Y g = g (Y g)
+    # f = g(g(g(...g(Y g)))) = G G = g(f) = g(G G)
+    # G G = g (G G)
+    # G = λG. g(G, G) = λx. g(x, x)
+    # Y g = f = G G = (λx.g (x x)) (λx.g (x x))
+    # Y = λg. (λx.g (x x)) (λx.g (x x))
+    # Y = λf. (λx.f (x x)) (λx.f (x x))
+
+    # actually Y conbinator
